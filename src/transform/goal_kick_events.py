@@ -1,4 +1,8 @@
 import pandas as pd
+import logging
+
+# Get logger (initialized in source file)
+logger = logging.getLogger(__name__)
 
 def transform_to_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -13,7 +17,9 @@ def transform_to_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
     --------
     pd.DataFrame: The transformed goal kick events.
     """
-    
+
+    logger.info(f"Transforming {len(df)} records from events data to goal kick events.")
+
     # Filter for goal kick events
     df = df[df["pass_type"] == "Goal Kick"].copy()
 

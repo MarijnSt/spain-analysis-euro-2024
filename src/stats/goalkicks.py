@@ -1,4 +1,8 @@
 import pandas as pd
+import logging
+
+# Get logger (initialized in source file)
+logger = logging.getLogger(__name__)
 
 
 def calculate_gk_stats(df: pd.DataFrame) -> pd.DataFrame:
@@ -14,6 +18,8 @@ def calculate_gk_stats(df: pd.DataFrame) -> pd.DataFrame:
     --------
     pd.DataFrame: The statistics for the goal kicks per team.
     """
+
+    logger.info(f"Calculating statistics for goal kicks.")
 
     # Get all teams first
     all_teams = df["team"].unique()
