@@ -58,6 +58,7 @@ class StylingConfig:
     # Typography
     typo = {
         'sizes': {
+            'h0': 40,
             'h1': 20,
             'h2': 18,
             'h3': 16,

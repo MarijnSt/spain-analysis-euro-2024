@@ -22,7 +22,11 @@ def transform_to_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
     df[["end_x", "end_y"]] = pd.DataFrame(df["pass_end_location"].tolist(), index=df.index)
 
     # Categorize pass length
-    df["pass_length_cat"] = pd.cut(df["pass_length"], bins=[0, 30, float("inf")], labels=["short", "long"])
+    df["pass_length"] = pd.cut(df["pass_length"], bins=[0, 30, float("inf")], labels=["short", "long"])
+
+    # Pass outcome
+    df["pass_outcome"] = df["pass_outcome"].fillna("Complete")
+
 
     # Select relevant columns
     cols = [
