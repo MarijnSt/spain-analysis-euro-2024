@@ -63,8 +63,8 @@ def create_gk_distribution_plot(
     })
 
     # Create figure
-    fig = plt.figure(figsize=(11, 12))
-    gs = fig.add_gridspec(2, 2, height_ratios=[0.1, 0.9], width_ratios=[0.7, 0.3])       # 2 rows, 2 columns, with height ratios for rows and width ratios for columns
+    fig = plt.figure(figsize=(11, 11))
+    gs = fig.add_gridspec(2, 2, height_ratios=[0.05, 0.95], width_ratios=[0.7, 0.3])       # 2 rows, 2 columns, with height ratios for rows and width ratios for columns
 
     # Init axis
     heading_ax = fig.add_subplot(gs[0, :])
@@ -73,11 +73,11 @@ def create_gk_distribution_plot(
 
     # Hide axis
     heading_ax.axis('off')
-    # main_ax.axis('off')
+    main_ax.axis('off')
     legend_ax.axis('off')
 
     # Title
-    heading_ax.text(0, 0.45, f"{team}'s distribution from goal kicks",
+    heading_ax.text(0.05, 0, f"{team}'s distribution from goal kicks",
         fontsize=styling.typo['sizes']['h1'],
         fontproperties=styling.fonts['medium_italic'],
         ha='left', 
@@ -85,10 +85,8 @@ def create_gk_distribution_plot(
     )
 
     # Subtitle
-    heading_ax.text(
-        0, 
-        0, 
-        f'Goalkick end locations from all Euro 2024 games', 
+    heading_ax.text(0.05, -0.65, 
+        f'Goal kick end locations from all Euro 2024 games', 
         ha='left',
         va='bottom'
     )
@@ -98,10 +96,10 @@ def create_gk_distribution_plot(
     project_root = current_file.parent.parent.parent
     logo_path = project_root / 'static' / 'euro_2024_logo.png'
     logo = mpimg.imread(logo_path)
-    imagebox = OffsetImage(logo, zoom=0.2)
+    imagebox = OffsetImage(logo, zoom=0.15)
     ab = AnnotationBbox(
         imagebox, 
-        (1, 0),                     # location of annotation box
+        (0.95, -0.65),                     # location of annotation box
         xycoords='axes fraction',   # use axes fraction coordinates: relative to axes and percentage of axes for position
         box_alignment=(1, 0),       # alignment of the annotation box: (1, 0) means right-aligned and bottom-aligned
         frameon=False               # don't show the frame of the annotation box
@@ -126,9 +124,9 @@ def create_gk_distribution_plot(
 
     # Define combinations and their settings
     pass_combinations = [
-        (mask_complete & mask_short, styling.colors['info'], 1.0),
+        (mask_complete & mask_short, styling.colors['blue'], 1.0),
         (mask_complete & mask_long, styling.colors['danger'], 1.0),
-        (~mask_complete & mask_short, styling.colors['info'], styling.alpha),
+        (~mask_complete & mask_short, styling.colors['blue'], styling.alpha),
         (~mask_complete & mask_long, styling.colors['danger'], styling.alpha),
     ]
 
@@ -151,18 +149,18 @@ def create_gk_distribution_plot(
 
     # Long passes legend
     legend_ax.text(0, 0.675, f"{stats_df['long_percentage'].values[0]}%", 
-        fontsize=styling.typo['sizes']['h0'],
-        fontproperties=styling.fonts['medium_italic'],
-        color=styling.colors['danger'],
-        ha='left', 
-        va='bottom'
+        fontsize=styling.typo["sizes"]["h0"],
+        fontproperties=styling.fonts["medium_italic"],
+        color=styling.colors["danger"],
+        ha="left", 
+        va="bottom"
     )
 
     legend_ax.text(0, 0.625, f"{stats_df['long_passes'].values[0]} long passes",
-        fontsize=styling.typo['sizes']['h3'],
-        color=styling.colors['danger'],
-        ha='left', 
-        va='bottom'
+        fontsize=styling.typo["sizes"]["h3"],
+        color=styling.colors["danger"],
+        ha="left", 
+        va="bottom"
     )
 
     legend_ax.text(0, 0.575, f"{stats_df['completed_long_percentage'].values[0]}% completed", 
@@ -176,23 +174,33 @@ def create_gk_distribution_plot(
     legend_ax.text(0, 0.325, f"{stats_df['short_percentage'].values[0]}%", 
         fontsize=styling.typo['sizes']['h0'],
         fontproperties=styling.fonts['medium_italic'],
-        color=styling.colors['info'],
+        color=styling.colors['blue'],
         ha='left', 
         va='bottom'
     )
 
     legend_ax.text(0, 0.275, f"{stats_df['short_passes'].values[0]} short passes",
         fontsize=styling.typo['sizes']['h3'],
-        color=styling.colors['info'],
+        color=styling.colors['blue'],
         ha='left', 
         va='bottom'
     )
 
     legend_ax.text(0, 0.225, f"{stats_df['completed_short_percentage'].values[0]}% completed", 
         fontsize=styling.typo['sizes']['h3'],
-        color=styling.colors['info'],
+        color=styling.colors['blue'],
         ha='left', 
         va='bottom'
     )
+
+    # Save plot
+    default_kwargs = {
+        'bbox_inches': 'tight',
+        'pad_inches': 0.25,
+        'facecolor': styling.colors['light'],
+        'dpi': 300
+    }
+    output_path = project_root / 'generated_plots' / 'gk_distribution' / f'{team}.png'
+    fig.savefig(output_path, **default_kwargs)
 
     return fig
