@@ -3,12 +3,17 @@
 from pathlib import Path
 from matplotlib import font_manager
 from typing import Dict
+import logging
+
+# Get logger (initialized in source file)
+logger = logging.getLogger(__name__)
 
 class StylingConfig:
     @staticmethod
     def _load_fonts() -> Dict:
         """Load custom fonts from static directory."""
-        project_root = Path.cwd()
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent.parent
         font_base_path = project_root / 'static' / 'fonts'
         
         font_paths = {
@@ -24,8 +29,13 @@ class StylingConfig:
 
         for name, path in font_paths.items():
             if path.exists():
-                font_manager.fontManager.addfont(str(path))
-                fonts[name] = font_manager.FontProperties(fname=str(path))
+                try:
+                    font_manager.fontManager.addfont(str(path))
+                    fonts[name] = font_manager.FontProperties(fname=str(path))
+                except Exception as e:
+                    logger.error(f"Failed to load font {name}: {e}")
+            else:
+                logger.error(f"Font {path} does not exist!")
 
         return fonts
 
@@ -52,6 +62,17 @@ class StylingConfig:
             'label': 8,
         },
         'alpha': 0.2,
+    }
+
+    # Pitch
+    pitch = {
+        'pitch_type': "statsbomb",
+        'line_color': colors['primary'],
+        'linewidth': 0.5,
+        'half': False,
+        'goal_type': 'box',
+        'corner_arcs': True,
+        'pad_bottom': 0.1,
     }
 
 styling = StylingConfig()
