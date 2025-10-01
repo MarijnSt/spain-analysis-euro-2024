@@ -112,9 +112,9 @@ def create_gk_distribution_plot(
         df[mask_complete]["y"],
         df[mask_complete]["end_x"],
         df[mask_complete]["end_y"],
-        width=1,
-        headwidth=5,
-        headlength=5,
+        width=styling.arrows['width'],
+        headwidth=styling.arrows['headwidth'],
+        headlength=styling.arrows['headlength'],
         ax=main_ax,
         color=styling.colors['primary']
     )
@@ -125,12 +125,12 @@ def create_gk_distribution_plot(
         df[~mask_complete]["y"],
         df[~mask_complete]["end_x"],
         df[~mask_complete]["end_y"],
-        width=1,
-        headwidth=5,
-        headlength=5,
+        width=styling.arrows['width'],
+        headwidth=styling.arrows['headwidth'],
+        headlength=styling.arrows['headlength'],
         ax=main_ax,
         color=styling.colors['primary'],
-        alpha=0.2
+        alpha=styling.alpha
     )
 
     return fig

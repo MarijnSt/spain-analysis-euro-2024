@@ -52,6 +52,9 @@ class StylingConfig:
         'white': '#FFFFFF',
     }
 
+    # Alpha
+    alpha = 0.2
+
     # Typography
     typo = {
         'sizes': {
@@ -61,7 +64,6 @@ class StylingConfig:
             'p': 12,
             'label': 8,
         },
-        'alpha': 0.2,
     }
 
     # Pitch
@@ -73,6 +75,13 @@ class StylingConfig:
         'goal_type': 'box',
         'corner_arcs': True,
         'pad_bottom': 0.1,
+    }
+
+    # Arrows
+    arrows = {
+        'width': 1,
+        'headwidth': 5,
+        'headlength': 5,
     }
 
 styling = StylingConfig()
