@@ -12,15 +12,15 @@ from src.config import styling
 logger = logging.getLogger(__name__)
 
 def create_gk_distribution_plot(
-    data: pd.DataFrame,
+    df: pd.DataFrame,
 ) -> plt.Figure:
     """
     Create a plot of the distribution of the goalkeeper's actions.
 
     Parameters:
     ----------
-    data: pd.DataFrame
-        The data to plot.
+    df: pd.DataFrame
+        The goal kicks to plot.
 
     Returns:
     --------
@@ -112,5 +112,48 @@ def create_gk_distribution_plot(
         corner_arcs=styling.pitch['corner_arcs']
     )
     pitch.draw(ax=main_ax)
+
+    mask_complete = df["pass_outcome"].isnull()
+
+    # Plot completed passes
+    pitch.arrows(
+        df[mask_complete]["x"],
+        df[mask_complete]["y"],
+        df[mask_complete]["end_x"],
+        df[mask_complete]["end_y"],
+        width=1,
+        headwidth=5,
+        headlength=5,
+        ax=main_ax,
+        color=styling.colors['primary']
+    )
+
+    # Plot incomplete passes
+    pitch.arrows(
+        df[~mask_complete]["x"],
+        df[~mask_complete]["y"],
+        df[~mask_complete]["end_x"],
+        df[~mask_complete]["end_y"],
+        width=1,
+        headwidth=5,
+        headlength=5,
+        ax=main_ax,
+        color=styling.colors['primary'],
+        alpha=0.2
+    )
+
+    # # Draw goal kicks
+    # for i, goal_kick in df.iterrows():
+    #     # Get starting point
+    #     x = goal_kick["x"]
+    #     y = goal_kick["y"]
+
+    #     # Get direction vector
+    #     dx = goal_kick["end_x"] - x
+    #     dy = goal_kick["end_y"] - y
+
+    #     # Draw arrow
+    #     arrow = main_ax.arrow(x, y, dx, dy, head_width=0.5, head_length=0.5, fc='k', ec='k')
+    #     main_ax.add_patch(arrow)
 
     return fig
