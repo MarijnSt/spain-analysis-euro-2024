@@ -46,26 +46,17 @@ def create_gk_distribution_plot(
 
     # Create figure
     fig = plt.figure(figsize=(11, 12))
-    gs = fig.add_gridspec(3, 1, height_ratios=[0.1, 0.85, 0.05])       # 2 rows, 1 column, with height ratios for title, plot and legend
+    gs = fig.add_gridspec(2, 2, height_ratios=[0.1, 0.9], width_ratios=[0.7, 0.3])       # 2 rows, 2 columns, with height ratios for rows and width ratios for columns
 
     # Init axis
-    heading_ax = fig.add_subplot(gs[0])
-    main_ax = fig.add_subplot(gs[1])
-    legend_ax = fig.add_subplot(gs[2])
+    heading_ax = fig.add_subplot(gs[0, :])
+    main_ax = fig.add_subplot(gs[1, 0])
+    legend_ax = fig.add_subplot(gs[1, 1])
 
     # Hide axis
-    heading_ax.axis('off')
-
-    # Hide spines
-    # main_ax.spines['top'].set_visible(False)
-    # main_ax.spines['bottom'].set_visible(False)
-    # main_ax.spines['left'].set_visible(False)
-    # main_ax.spines['right'].set_visible(False)
-
-    # Remove axis ticks
-    # main_ax.set_yticklabels([])
-    # main_ax.set_yticks([])
-    # main_ax.set_xticks([])
+    # heading_ax.axis('off')
+    # main_ax.axis('off')
+    # legend_ax.axis('off')
 
     # Title
     heading_ax.text(
@@ -141,19 +132,5 @@ def create_gk_distribution_plot(
         color=styling.colors['primary'],
         alpha=0.2
     )
-
-    # # Draw goal kicks
-    # for i, goal_kick in df.iterrows():
-    #     # Get starting point
-    #     x = goal_kick["x"]
-    #     y = goal_kick["y"]
-
-    #     # Get direction vector
-    #     dx = goal_kick["end_x"] - x
-    #     dy = goal_kick["end_y"] - y
-
-    #     # Draw arrow
-    #     arrow = main_ax.arrow(x, y, dx, dy, head_width=0.5, head_length=0.5, fc='k', ec='k')
-    #     main_ax.add_patch(arrow)
 
     return fig
