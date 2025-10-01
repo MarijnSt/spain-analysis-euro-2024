@@ -131,3 +131,12 @@
 2025-10-01 11:19:23,524 - src.extract.statsbomb_data - INFO - Found 187858 events from events function
 2025-10-01 11:22:58,537 - src.extract.statsbomb_data - INFO - Fetching StatsBomb event data for Europe - UEFA Euro - 2024 - male
 2025-10-01 11:23:08,865 - src.extract.statsbomb_data - INFO - Found 187858 events!
+2025-10-01 12:05:25,138 - src.config.logging_config - INFO - Events columns: Index(['50_50', 'bad_behaviour_card', 'ball_receipt_outcome',
+       'ball_recovery_offensive', 'ball_recovery_recovery_failure',
+       'block_deflection', 'block_offensive', 'block_save_block',
+       'carry_end_location', 'clearance_aerial_won',
+       ...
+       'substitution_outcome', 'substitution_outcome_id',
+       'substitution_replacement', 'substitution_replacement_id', 'tactics',
+       'team', 'team_id', 'timestamp', 'type', 'under_pressure'],
+      dtype='object', length=114)

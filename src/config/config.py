@@ -12,6 +12,7 @@ class StatsbombConfig:
     division = "UEFA Euro"
     season = "2024"
     gender = "male"
+    spain_id = 772
 
 class Config:
     logging = LoggingConfig()
