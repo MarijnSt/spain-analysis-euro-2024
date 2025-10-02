@@ -86,84 +86,58 @@ def transform_to_turnovers(events_df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info(f"Transforming {len(events_df)} records from events data to turnovers data...")
 
-    # Only keep events in own half
-    df_copy = events_df[events_df["location"].notna()].copy()
-    df_copy[["x", "y"]] = pd.DataFrame(df_copy["location"].tolist(), index=df_copy.index)
-    df_copy = df_copy[df_copy["x"] < 60]
+    # Filter to own half once
+    df = events_df[events_df["location"].notna()].copy()
+    df[["x", "y"]] = pd.DataFrame(df["location"].tolist(), index=df.index)
+    df = df[df["x"] < 60]
 
-    # Collect turnovers by type
-    type_df = df_copy[
-        (df_copy["type"] == "Dispossessed") |
-        (df_copy["type"] == "Miscontrol")
-    ].copy()
-
-    logger.info(f"Found {len(type_df)} turnovers by type (Dispossessed and Miscontrol).")
-
-    # Collect 50/50s
-    fifty_fifty_df = df_copy[
-        (df_copy["type"] == "50/50")
-    ].copy()
-
-    # Extract outcome from 50/50s
-    fifty_fifty_df["50_50"] = fifty_fifty_df["50_50"].apply(
-        lambda x: x["outcome"]["name"] if isinstance(x, dict) and "outcome" in x and "name" in x["outcome"] else x
+    # Create boolean masks for different turnover types
+    type_mask = (df["type"] == "Dispossessed") | (df["type"] == "Miscontrol")
+    
+    fifty_fifty_mask = (df["type"] == "50/50")
+    
+    pass_mask = (
+        (df["type"] == "Pass") &
+        (df["pass_outcome"].notna()) &
+        (df["pass_type"] != "Goal Kick") &
+        (df["pass_type"] != "Corner") &
+        (df["pass_type"] != "Free Kick") &
+        (df["pass_type"] != "Throw In") &
+        (df["pass_outcome"] != "Injury Clearance")
+    )
+    
+    dribble_mask = (df["dribble_outcome"] == "Incomplete")
+    
+    ball_receipt_mask = (df["ball_receipt_outcome"] == "Incomplete")
+    
+    duel_mask = (
+        (df["type"] == "Duel") &
+        (df["team"] == df["possession_team"]) &
+        (
+            (df["duel_outcome"].isna()) | 
+            (df["duel_outcome"] == "Lost") |
+            (df["duel_outcome"] == "Lost In Play") |
+            (df["duel_outcome"] == "Lost Out")
+        )
     )
 
-    # Keep turnovers from failed 50/50s
-    fifty_fifty_df = fifty_fifty_df[
-        (fifty_fifty_df["50_50"] == "Lost") |
-        (fifty_fifty_df["50_50"] == "Success To Opposition")
-    ]
-
-    logger.info(f"Found {len(fifty_fifty_df)} turnovers from 50/50s.")
-
-    # Collect turnovers from failed passes
-    passes_df = df_copy[
-        (df_copy["type"] == "Pass") &
-        (df_copy["pass_outcome"].notna()) &
-        (df_copy["pass_type"] != "Goal Kick") &
-        (df_copy["pass_type"] != "Corner") &
-        (df_copy["pass_type"] != "Free Kick") &
-        (df_copy["pass_type"] != "Throw In") &
-        (df_copy["pass_outcome"] != "Injury Clearance")
-    ].copy()
-
-    logger.info(f"Found {len(passes_df)} turnovers from passes.")
-
-    # Collect turnovers from incomplete dribbles
-    dribbles_df = df_copy[
-        (df_copy["dribble_outcome"] == "Incomplete")
-    ].copy()
-
-    logger.info(f"Found {len(dribbles_df)} turnovers from dribbles.")
-
-    # Collect turnovers from incomplete ball receipts
-    ball_receipts_df = df_copy[
-        (df_copy["ball_receipt_outcome"] == "Incomplete")
-    ].copy()
-
-    logger.info(f"Found {len(ball_receipts_df)} turnovers from incomplete ball receipts.")
-
-    # Collect turnovers from failed duels when in possession
-    duels_df = df_copy[
-        (df_copy["type"] == "Duel") &
-        (df_copy["team"] == df_copy["possession_team"]) &
-        (
-            (df_copy["duel_outcome"].isna()) | 
-            (df_copy["duel_outcome"] == "Lost") |
-            (df_copy["duel_outcome"] == "Lost In Play") |
-            (df_copy["duel_outcome"] == "Lost Out")
-        )
-    ].copy()
-
-    logger.info(f"Found {len(duels_df)} turnovers from duels when in possession.")
-
-    # Combine all turnovers
-    df = pd.concat([type_df, fifty_fifty_df, passes_df, dribbles_df, ball_receipts_df, duels_df])
+    # Combine all masks
+    turnover_mask = type_mask | fifty_fifty_mask | pass_mask | dribble_mask | ball_receipt_mask | duel_mask
+    
+    # Filter turnovers
+    df = df[turnover_mask].copy()
+    
+    # Handle 50/50 events
+    df.loc[fifty_fifty_mask, "50_50"] = df.loc[fifty_fifty_mask, "50_50"].apply(
+        lambda x: x["outcome"]["name"] if isinstance(x, dict) and "outcome" in x and "name" in x["outcome"] else x
+    )
+    
+    # Filter 50/50s to only lost ones
+    df = df[~fifty_fifty_mask | ((df["type"] == "50/50") & ((df["50_50"] == "Lost") | (df["50_50"] == "Success To Opposition")))]
 
     logger.info(f"Found {len(df)} turnovers.")
 
-    # Filter out duplicates (by id)
+    # Remove duplicates
     df = df.drop_duplicates(subset=["id"])
 
     logger.info(f"Filtered out duplicates. {len(df)} turnovers left.")
@@ -171,14 +145,9 @@ def transform_to_turnovers(events_df: pd.DataFrame) -> pd.DataFrame:
     # Select relevant columns
     turnover_cols = [
         "id", "match_id", "team", "player", "position", "timestamp", "possession", "possession_team",
-        "x", "y",
-        "type", 
-        "50_50",
-        "pass_outcome", "pass_end_location", "pass_type",
-        "dribble_outcome",
-        "ball_receipt_outcome",
-        "duel_type", "duel_outcome",
-        "under_pressure", "counterpress",
+        "x", "y", "type", "50_50", "pass_outcome", "pass_end_location", "pass_type",
+        "dribble_outcome", "ball_receipt_outcome", "duel_type", "duel_outcome",
+        "under_pressure", "counterpress"
     ]
 
     return df[turnover_cols]
