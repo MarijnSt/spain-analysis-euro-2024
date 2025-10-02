@@ -1,6 +1,6 @@
 from .config import config, setup_logging, styling
 from .extract import fetch_statsbomb_event_data
-from .transform import transform_to_goal_kick_events
+from .transform import transform_to_goal_kick_events, transform_to_progressive_actions
 from .stats import calculate_gk_stats
 from .viz import create_gk_distribution_plot
 
@@ -18,6 +18,7 @@ __all__ = [
 
     # Transform
     "transform_to_goal_kick_events",
+    "transform_to_progressive_actions",
 
     # Viz
     "create_gk_distribution_plot",

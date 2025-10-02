@@ -23,7 +23,7 @@ def transform_to_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
     # Filter for goal kick events
     df = df[df["pass_type"] == "Goal Kick"].copy()
 
-    # Split location into x and y (swap for vertical pitch)
+    # Split location into x and y
     df[["x", "y"]] = pd.DataFrame(df["location"].tolist(), index=df.index)
     df[["end_x", "end_y"]] = pd.DataFrame(df["pass_end_location"].tolist(), index=df.index)
 
