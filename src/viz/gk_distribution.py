@@ -5,6 +5,7 @@ import matplotlib.image as mpimg
 from pathlib import Path
 import pandas as pd
 import logging
+from typing import Optional
 
 from src.config import styling
 
@@ -15,7 +16,7 @@ def create_gk_distribution_plot(
     team: str,
     events_df: pd.DataFrame,
     stats_df: pd.DataFrame
-) -> plt.Figure:
+) -> Optional[plt.Figure]:
     """
     Create a plot of the distribution of the goalkeeper's actions.
 
@@ -30,8 +31,8 @@ def create_gk_distribution_plot(
 
     Returns:
     --------
-    plt.Figure
-        The plot of the distribution of the goalkeeper's actions.
+    Optional[plt.Figure]
+        The plot of the distribution of the goalkeeper's actions or None if no events or stats found for the team.
     """
 
     # Filter events and stats for the team

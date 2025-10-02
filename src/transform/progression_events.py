@@ -55,8 +55,8 @@ def transform_to_progressive_actions(events_df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info(f"Found {len(df)} progressive actions (passes and carries).")
 
-    # Only keep actions in own half
-    df = df[df["x"] < 60]
+    # Only keep actions before final third
+    df = df[df["x"] < 80]
 
     logger.info(f"Done! Found {len(df)} progressive actions in own half (x < 60).")
 
@@ -89,7 +89,7 @@ def transform_to_turnovers(events_df: pd.DataFrame) -> pd.DataFrame:
     # Filter to own half once
     df = events_df[events_df["location"].notna()].copy()
     df[["x", "y"]] = pd.DataFrame(df["location"].tolist(), index=df.index)
-    df = df[df["x"] < 60]
+    df = df[df["x"] < 80]
 
     # Create boolean masks for different turnover types
     type_mask = (df["type"] == "Dispossessed") | (df["type"] == "Miscontrol")
