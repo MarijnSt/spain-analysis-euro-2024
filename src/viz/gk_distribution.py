@@ -46,7 +46,10 @@ def create_gk_distribution_plot(
         logger.error(f"No stats found for {team}")
         return None
 
-    logger.info(f"Creating goal kick distribution plot for {team}")
+    logger.info(f"Creating goal kick distribution plot for {team}.")
+
+    # Get the number of games played
+    games_played = events_df["match_id"].nunique()
     
     # Init plt styling
     plt.rcParams.update({
@@ -86,7 +89,7 @@ def create_gk_distribution_plot(
 
     # Subtitle
     heading_ax.text(0.05, -0.65, 
-        f'Goal kick end locations from all Euro 2024 games', 
+        f'{len(events_df)} goal kicks from {games_played} games at Euro 2024', 
         ha='left',
         va='bottom'
     )
@@ -155,6 +158,14 @@ def create_gk_distribution_plot(
         ha="left", 
         va="bottom"
     )
+    
+    legend_ax.text(0.51, 0.69, f"> 30m", 
+        fontsize=styling.typo["sizes"]["label"],
+        fontproperties=styling.fonts["medium_italic"],
+        color=styling.colors["danger"],
+        ha="left", 
+        va="bottom"
+    )
 
     legend_ax.text(0, 0.625, f"{stats_df['long_passes'].values[0]} long passes",
         fontsize=styling.typo["sizes"]["h3"],
@@ -173,6 +184,14 @@ def create_gk_distribution_plot(
     # Short passes legend
     legend_ax.text(0, 0.325, f"{stats_df['short_percentage'].values[0]}%", 
         fontsize=styling.typo['sizes']['h0'],
+        fontproperties=styling.fonts['medium_italic'],
+        color=styling.colors['blue'],
+        ha='left', 
+        va='bottom'
+    )
+    
+    legend_ax.text(0.51, 0.34, f"< 30m", 
+        fontsize=styling.typo['sizes']['label'],
         fontproperties=styling.fonts['medium_italic'],
         color=styling.colors['blue'],
         ha='left', 
