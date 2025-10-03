@@ -18,6 +18,7 @@ def create_build_up_plots(
     team: str,
     first_events_df: pd.DataFrame,
     chain_events_df: pd.DataFrame,
+    build_up_stats_df: pd.DataFrame,
 ) -> Optional[plt.Figure]:
     """
     Create progression and turnovers heatmaps with custom zones for a given team.
@@ -30,6 +31,8 @@ def create_build_up_plots(
         The first events data to plot.
     chain_events_df: pd.DataFrame
         The chain events data to plot.
+    build_up_stats_df: pd.DataFrame
+        The build up statistics data to plot.
 
     Returns:
     --------
@@ -40,6 +43,7 @@ def create_build_up_plots(
     # Filter events for the team
     first_events_df = first_events_df[first_events_df["team"] == team]
     chain_events_df = chain_events_df[chain_events_df["team"] == team]
+    build_up_stats_df = build_up_stats_df[build_up_stats_df["team"] == team]
 
     if len(first_events_df) == 0:
         logger.error(f"No first events found for {team}")
@@ -47,6 +51,10 @@ def create_build_up_plots(
 
     if len(chain_events_df) == 0:
         logger.error(f"No chain events found for {team}")
+        return None
+
+    if len(build_up_stats_df) == 0:
+        logger.error(f"No build up stats found for {team}")
         return None
 
     logger.info(f"Creating build up plots for {team}.")
@@ -155,30 +163,130 @@ def create_build_up_plots(
     plot_passes(chain_events_pitch, chain_events_df[chain_events_df["phase"] == 2], chain_events_ax)
 
     # First events legend    
-    legend_ax.text(0.225, 5, 
+    legend_ax.text(0.225, 5.5, 
         f"All goal kicks from {team}", 
         fontsize=styling.typo['sizes']['label'], 
         ha='center', 
         va='top'
     )
+
+    legend_ax.text(0.1, 3.7, 
+        f"{build_up_stats_df['first_short_pct'].values[0]}%", 
+        fontsize=styling.typo['sizes']['h3'], 
+        fontproperties=styling.fonts['medium_italic'],
+        color=styling.colors['blue'],
+        ha='center', 
+        va='top'
+    )
     
-    # Second phase legend    
-    legend_ax.text(0.77, 5, 
-        "Passes following a goal kick that doesn't start with the goalkeeper", 
+    legend_ax.text(0.1, 2.25, 
+        f"{build_up_stats_df['first_short'].values[0]} short passes", 
         fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['blue'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.1, 1.5, 
+        f"{build_up_stats_df['first_completed_short_pct'].values[0]}% completed", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['blue'],
         ha='center', 
         va='top'
     )
 
-    # # Save plot
-    # default_kwargs = {
-    #     'bbox_inches': 'tight',
-    #     'pad_inches': 0.25,
-    #     'facecolor': styling.colors['light'],
-    #     'dpi': 300
-    # }
-    # output_path = project_root / 'generated_plots' / 'progression_heatmaps' / f'{team}.png'
-    # fig.savefig(output_path, **default_kwargs)
+    legend_ax.text(0.35, 3.7, 
+        f"{build_up_stats_df['first_long_pct'].values[0]}%", 
+        fontsize=styling.typo['sizes']['h3'], 
+        fontproperties=styling.fonts['medium_italic'],
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.35, 2.25, 
+        f"{build_up_stats_df['first_long'].values[0]} long passes", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.35, 1.5, 
+        f"{build_up_stats_df['first_completed_long_pct'].values[0]}% completed", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+    
+    # Second phase legend    
+    legend_ax.text(0.77, 5.5, 
+        "First pass following a goal kick that doesn't start with the goalkeeper", 
+        fontsize=styling.typo['sizes']['label'], 
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.65, 3.7, 
+        f"{build_up_stats_df['second_short_pct'].values[0]}%", 
+        fontsize=styling.typo['sizes']['h3'], 
+        fontproperties=styling.fonts['medium_italic'],
+        color=styling.colors['blue'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.65, 2.25, 
+        f"{build_up_stats_df['second_short'].values[0]} short passes", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['blue'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.65, 1.5, 
+        f"{build_up_stats_df['second_completed_short_pct'].values[0]}% completed", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['blue'],
+        ha='center', 
+        va='top'
+    )
+
+    legend_ax.text(0.9, 3.7, 
+        f"{build_up_stats_df['second_long_pct'].values[0]}%", 
+        fontsize=styling.typo['sizes']['h3'], 
+        fontproperties=styling.fonts['medium_italic'],
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.9, 2.25, 
+        f"{build_up_stats_df['second_long'].values[0]} long passes", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+    
+    legend_ax.text(0.9, 1.5, 
+        f"{build_up_stats_df['second_completed_long_pct'].values[0]}% completed", 
+        fontsize=styling.typo['sizes']['label'], 
+        color=styling.colors['danger'],
+        ha='center', 
+        va='top'
+    )
+
+    # Save plot
+    default_kwargs = {
+        'bbox_inches': 'tight',
+        'pad_inches': 0.25,
+        'facecolor': styling.colors['light'],
+        'dpi': 300
+    }
+    output_path = project_root / 'generated_plots' / 'build_up_plots' / f'{team}.png'
+    fig.savefig(output_path, **default_kwargs)
 
     return fig
 
