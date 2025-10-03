@@ -64,10 +64,10 @@ def transform_to_build_up_events(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info(f"Transforming {len(df)} records from events data to two phase events.")
 
-    # Filter for goal kick chains and keep passes and carries
+    # Filter for goal kick chains and keep passes
     df = df[
         (df["play_pattern"] == "From Goal Kick") &
-        ((df["type"] == "Pass") | (df["type"] == "Carry"))
+        (df["type"] == "Pass")
     ].copy()
 
     # Sort by match_id and timestamp to ensure proper ordering
@@ -96,24 +96,13 @@ def transform_to_build_up_events(df: pd.DataFrame) -> pd.DataFrame:
             if chain_df["pass_type"].iloc[0] != "Goal Kick":
                 continue
 
-            # Combine end locations into one column
-            chain_df["end_location"] = np.where(
-                chain_df["type"] == "Carry",
-                chain_df["carry_end_location"],
-                chain_df["pass_end_location"]
-            )
-
             # Split locations
             chain_df[["x", "y"]] = pd.DataFrame(chain_df["location"].tolist(), index=chain_df.index)
-            chain_df[["end_x", "end_y"]] = pd.DataFrame(chain_df["end_location"].tolist(), index=chain_df.index)
+            chain_df[["end_x", "end_y"]] = pd.DataFrame(chain_df["pass_end_location"].tolist(), index=chain_df.index)
 
-            # Init pass category
-            chain_df["pass_category"] = None
-
-            # Categorize pass length
-            pass_mask = chain_df["type"] == "Pass"
-            chain_df.loc[pass_mask, "pass_category"] = pd.cut(
-                chain_df.loc[pass_mask, "pass_length"], 
+            # Categorize pass length (30 metres = 32.8084 yards)
+            chain_df["pass_category"] = pd.cut(
+                chain_df["pass_length"], 
                 bins=[0, 32.8084, float("inf")], 
                 labels=["short", "long"]
             )
@@ -133,7 +122,7 @@ def transform_to_build_up_events(df: pd.DataFrame) -> pd.DataFrame:
                 continue
 
             # Set phase column to 2 for second event
-            chain_df.loc[1, "phase"] = 2
+            chain_df.at[chain_df.index[1], "phase"] = 2
 
             # Add first two events of chain to list
             chain_events.append(chain_df[0:2])
@@ -151,7 +140,7 @@ def transform_to_build_up_events(df: pd.DataFrame) -> pd.DataFrame:
 
     # Select relevant columns
     cols = [
-        "match_id", "team", "player", "position", "timestamp", "possession", "phase",
+        "match_id", "team", "player", "position", "timestamp", "possession", "type", "phase",
         "x", "y", "end_x", "end_y", "pass_type", "pass_outcome", "pass_category"
     ]
 
