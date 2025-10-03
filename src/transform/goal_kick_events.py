@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import logging
 
 # Get logger (initialized in source file)
@@ -42,11 +43,11 @@ def transform_to_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
 
     return df[cols]
 
-def transform_to_two_phase_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
+def transform_to_build_up_events(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transform events data to two phase events.
-    Phase one: goal kick from centre back
-    Phase two: next pass
+    Transform events data in two dataframes:
+    - First events: goal kicks
+    - Chain events: two first events (passes or carries) from build ups that don't start with the goalkeeper
 
     Parameters:
     ----------
@@ -55,67 +56,104 @@ def transform_to_two_phase_goal_kick_events(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
     --------
-    pd.DataFrame: The transformed data in two phases (goal kick and next pass).
+    first_events_df: pd.DataFrame
+        The transformed first events dataframe.
+    chain_events_df: pd.DataFrame
+        The transformed chain events dataframe.
     """
 
     logger.info(f"Transforming {len(df)} records from events data to two phase events.")
 
-    # Filter for goal kick events
+    # Filter for goal kick chains and keep passes and carries
     df = df[
         (df["play_pattern"] == "From Goal Kick") &
-        (df["type"] == "Pass")
+        ((df["type"] == "Pass") | (df["type"] == "Carry"))
     ].copy()
 
-    # Fill pass outcome for first phase (goal kicks are always complete) - DO THIS EARLY
-    df['pass_outcome'] = df['pass_outcome'].fillna("Complete")
+    # Sort by match_id and timestamp to ensure proper ordering
+    df = df.sort_values(['match_id', 'timestamp']).reset_index(drop=True)
 
-    # Split location into x and y
-    df[["x", "y"]] = pd.DataFrame(df["location"].tolist(), index=df.index)
-    df[["end_x", "end_y"]] = pd.DataFrame(df["pass_end_location"].tolist(), index=df.index)
+    logger.info(f"Filtered {len(df)} records from events data to goal kick chains.")
 
-    # Sort by match_id, timestamp, then possession to ensure proper ordering
-    df = df.sort_values(['match_id', 'timestamp', 'possession']).reset_index(drop=True)
+    # Initialize list of first events and chain events
+    first_events = []
+    chain_events = []
 
-    # Filter out possession chains that start with a goalkeeper
-    # First, identify the first event of each possession chain
-    first_events = df.groupby(['match_id', 'possession']).first().reset_index()
+    # Loop through each match_id
+    for match_id in df["match_id"].unique():
+        # Filter for current match_id
+        match_df = df[df["match_id"] == match_id]
+        
+        # Loop through possession chain
+        for possession in match_df["possession"].unique():
+            chain_df = match_df[match_df["possession"] == possession].copy()
 
-    # Get possession IDs that don't start with a goalkeeper
-    valid_chains = first_events[first_events['position'] != 'Goalkeeper'][['match_id', 'possession']]
+            # Skip if chain is empty
+            if len(chain_df) == 0:
+                continue
+
+            # Skip if chain does not start with a Goal Kick
+            if chain_df["pass_type"].iloc[0] != "Goal Kick":
+                continue
+
+            # Combine end locations into one column
+            chain_df["end_location"] = np.where(
+                chain_df["type"] == "Carry",
+                chain_df["carry_end_location"],
+                chain_df["pass_end_location"]
+            )
+
+            # Split locations
+            chain_df[["x", "y"]] = pd.DataFrame(chain_df["location"].tolist(), index=chain_df.index)
+            chain_df[["end_x", "end_y"]] = pd.DataFrame(chain_df["end_location"].tolist(), index=chain_df.index)
+
+            # Init pass category
+            chain_df["pass_category"] = None
+
+            # Categorize pass length
+            pass_mask = chain_df["type"] == "Pass"
+            chain_df.loc[pass_mask, "pass_category"] = pd.cut(
+                chain_df.loc[pass_mask, "pass_length"], 
+                bins=[0, 32.8084, float("inf")], 
+                labels=["short", "long"]
+            )
+
+            # Add phase column to chain
+            chain_df["phase"] = 1
+
+            # Add first event to list
+            first_events.append(chain_df.iloc[0:1])
+
+            # Skip chain if it doesn't match the pattern we want
+            if (
+                len(chain_df) < 2 or                                # Skip if there are less than two events in the chain
+                chain_df.iloc[0]["position"] == "Goalkeeper" or     # Skip if the first pass is from the goalkeeper
+                pd.notna(chain_df.iloc[0]["pass_outcome"])            # Skip if the first pass is incomplete
+            ):
+                continue
+
+            # Set phase column to 2 for second event
+            chain_df.loc[1, "phase"] = 2
+
+            # Add first two events of chain to list
+            chain_events.append(chain_df[0:2])
     
-    # Filter the original dataframe to only include valid possession chains
-    df = df.merge(valid_chains, on=['match_id', 'possession'], how='inner')
+    # Combine lists into dataframes
+    first_events_df = pd.concat(first_events, ignore_index=True)
+    chain_events_df = pd.concat(chain_events, ignore_index=True)
 
-    # Keep only the first two events of each possession chain
-    df = df.groupby(['match_id', 'possession']).head(2).reset_index(drop=True)
+    # Sort by match_id and timestamp
+    first_events_df = first_events_df.sort_values(['match_id', 'timestamp']).reset_index(drop=True)
+    chain_events_df = chain_events_df.sort_values(['match_id', 'timestamp']).reset_index(drop=True)
 
-    # Add phase column (first or second pass in the chain)
-    df['phase'] = df.groupby(['match_id', 'possession']).cumcount() + 1
-
-    # Drop entire chains where phase 1 is incomplete (no phase 2 will exist)
-    # First, identify chains where phase 1 is incomplete
-    incomplete_chains = df[(df['phase'] == 1) & (df['pass_outcome'] != 'Complete')][['match_id', 'possession']]
-    
-    # Remove those entire chains
-    df = df[~df.set_index(['match_id', 'possession']).index.isin(incomplete_chains.set_index(['match_id', 'possession']).index)]
-
-    # Recalculate phase numbers after filtering
-    df['phase'] = df.groupby(['match_id', 'possession']).cumcount() + 1
-
-    # Categorize pass length for second phase passes (30 metres = 32.8084 yards)
-    df['pass_length_category'] = None  # Initialize as object type
-    df.loc[df['phase'] == 2, 'pass_length_category'] = pd.cut(
-        df.loc[df['phase'] == 2, 'pass_length'], 
-        bins=[0, 32.8084, float("inf")], 
-        labels=["short", "long"]
-    )
-
-    logger.info(f"Transformed {len(df)} records from events data to two phase goal kick events.")
+    logger.info(f"Transformed {len(first_events_df)} records from events data to first events dataframe.")
+    logger.info(f"Transformed {len(chain_events_df)} records from events data to chain events dataframe.")
 
     # Select relevant columns
     cols = [
         "match_id", "team", "player", "position", "timestamp", "possession", "phase",
-        "x", "y", "end_x", "end_y", "pass_type", "pass_outcome", "pass_length_category"
+        "x", "y", "end_x", "end_y", "pass_type", "pass_outcome", "pass_category"
     ]
 
-    return df[cols]
+    # Return dataframes
+    return first_events_df[cols], chain_events_df[cols]
