@@ -103,7 +103,7 @@ def create_build_up_plots(
 
     # Subtitle
     heading_ax.text(0.02, -0.65, 
-        f"Data from {games_played} games at Euro 2024", 
+        f"Data from all {games_played} games at Euro 2024", 
         ha='left',
         va='bottom'
     )
