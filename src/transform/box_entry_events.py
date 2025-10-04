@@ -42,7 +42,16 @@ def transform_to_box_entry_events(df: pd.DataFrame) -> pd.DataFrame:
     # Filter out events that don't start on the opponent's half
     df = df[df["x"] >= 60]
 
-    # Filter out events that don't end in the box
+    # Keep events that start outside of the box
+    df = df[~(
+        (df["x"] >= 102) & 
+        (df["x"] <= 120) & 
+        (df["y"] >= 18) & 
+        (df["y"] <= 62)
+    )]
+
+
+    # Keep events that end in the box
     df = df[
         (df["end_x"] >= 102) &
         (df["end_y"] >= 18) &

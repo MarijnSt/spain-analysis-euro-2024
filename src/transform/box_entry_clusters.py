@@ -26,7 +26,7 @@ def transform_to_box_entry_clusters(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"Transforming {len(df)} records from box entry events data to box entry clusters.")
 
     # Calculate clusters (would take )
-    kmeans = KMeans(n_clusters=3, random_state=42)
+    kmeans = KMeans(n_clusters=5, random_state=42)
     df["cluster"] = kmeans.fit_predict(df[["x", "y"]])
 
     # Create clusters dataframe
