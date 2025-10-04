@@ -36,7 +36,7 @@ def transform_to_shot_events(df: pd.DataFrame) -> pd.DataFrame:
 
     # Select relevant columns
     shot_cols = [
-        "match_id", "team", "player", "location", "timestamp", "possession", "type", "shot_from_set_piece", "shot_type", "shot_aerial_won", "shot_body_part", "shot_end_location", "shot_first_time", "shot_follows_dribble", 
+        "match_id", "team", "player", "location", "timestamp", "possession", "type", "play_pattern", "shot_from_set_piece", "shot_type", "shot_aerial_won", "shot_body_part", "shot_end_location", "shot_first_time", "shot_follows_dribble", 
         "shot_one_on_one", "shot_outcome", "shot_redirect", "shot_saved_off_target", "shot_saved_to_post", "shot_statsbomb_xg", "shot_technique"
     ]
 

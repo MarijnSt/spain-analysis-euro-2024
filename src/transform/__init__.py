@@ -1,4 +1,4 @@
-from .goal_kick_events import transform_to_build_up_events
+from .build_up_events import transform_to_build_up_events
 from .progression_events import transform_to_progressive_actions, transform_to_turnovers
 from .shot_events import transform_to_shot_events
 
