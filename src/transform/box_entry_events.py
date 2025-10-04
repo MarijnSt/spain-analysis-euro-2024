@@ -61,7 +61,7 @@ def transform_to_box_entry_events(df: pd.DataFrame) -> pd.DataFrame:
 
     # Select relevant columns
     box_entry_cols = [
-        "match_id", "team", "player", "location", "timestamp", "possession", "type", "x", "y", "end_x", "end_y", "box_entry_from_set_piece",
+        "id","match_id", "team", "player", "location", "timestamp", "possession", "type", "x", "y", "end_x", "end_y", "box_entry_from_set_piece",
     ]
 
     return df[~df["box_entry_from_set_piece"]][box_entry_cols]
