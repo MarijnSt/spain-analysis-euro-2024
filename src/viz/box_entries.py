@@ -169,14 +169,14 @@ def create_box_entry_plots(
     )
 
     # Plot titles for actions
-    legend_ax.text(0.225, 1.5, 
+    legend_ax.text(0.225, 1.75, 
         "Carries", 
         fontsize=styling.typo['sizes']['h2'], 
         fontproperties=styling.fonts['medium_italic'], 
         ha='center', 
         va='bottom'
     )
-    legend_ax.text(0.77, 1.5, 
+    legend_ax.text(0.77, 1.75, 
         "Passes", 
         fontsize=styling.typo['sizes']['h2'], 
         fontproperties=styling.fonts['medium_italic'], 
@@ -184,23 +184,15 @@ def create_box_entry_plots(
         va='bottom'
     )
 
-    # # Carries legend    
-    # legend_ax.text(0, 0, 
-    #     f"*Solid arrows indicate the top 5 most common clusters per action.", 
-    #     fontsize=styling.typo['sizes']['p'], 
-    #     ha='center', 
-    #     va='top'
-    # )
-
-    # # Save plot
-    # default_kwargs = {
-    #     'bbox_inches': 'tight',
-    #     'pad_inches': 0.25,
-    #     'facecolor': styling.colors['light'],
-    #     'dpi': 300
-    # }
-    # output_path = project_root / 'generated_plots' / 'box_entry_plots' / f'{team}.png'
-    # fig.savefig(output_path, **default_kwargs)
+    # Save plot
+    default_kwargs = {
+        'bbox_inches': 'tight',
+        'pad_inches': 0.25,
+        'facecolor': styling.colors['light'],
+        'dpi': 300
+    }
+    output_path = project_root / 'generated_plots' / 'box_entry_plots' / f'{team}.png'
+    fig.savefig(output_path, **default_kwargs)
 
     return fig
 
