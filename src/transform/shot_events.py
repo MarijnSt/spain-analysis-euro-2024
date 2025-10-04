@@ -25,6 +25,9 @@ def transform_to_shot_events(df: pd.DataFrame) -> pd.DataFrame:
     # Filter for shot events
     df = df[df["type"] == "Shot"].copy()
 
+    # Filter out penalty events
+    df = df[df["shot_type"] != "Penalty"]
+
     # Classify shot origin
     df["shot_from_set_piece"] = df.apply(
         lambda x: classify_shot_from_set_piece(df, x), axis=1
@@ -48,6 +51,18 @@ def classify_shot_from_set_piece(
 ) -> bool:
     """
     Classify if a shot comes from a set piece based on time OR action count
+
+    Parameters:
+    ----------
+    events_df: pd.DataFrame
+        The events data to classify.
+    shot_event: pd.Series
+        The shot event to classify.
+
+    Returns:
+    --------
+    bool:
+        True if the shot comes from a set piece, False otherwise.
     """
     match_id = shot_event['match_id']
     possession = shot_event['possession']

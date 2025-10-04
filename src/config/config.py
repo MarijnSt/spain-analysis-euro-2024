@@ -14,8 +14,13 @@ class StatsbombConfig:
     gender = "male"
     spain_id = 772
 
+class ClassificationConfig:
+    set_piece_allowed_time = 10 # seconds
+    set_piece_allowed_actions = 5 # actions
+
 class Config:
     logging = LoggingConfig()
     statsbomb = StatsbombConfig()
+    classification = ClassificationConfig()
 
 config = Config()
